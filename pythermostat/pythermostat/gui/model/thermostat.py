@@ -22,6 +22,7 @@ class Thermostat(QObject, metaclass=PropertyMeta):
     output = Property(list)
     postfilter = Property(list)
     report = Property(list)
+    # print("rrr", _report)
 
     connection_error = pyqtSignal()
 
