@@ -4,6 +4,7 @@ import asyncio
 import logging
 import argparse
 import importlib.resources
+import signal
 import json
 from PyQt6 import QtWidgets, QtGui, uic
 from PyQt6.QtCore import pyqtSlot
@@ -132,13 +133,16 @@ class MainWindow(QtWidgets.QMainWindow):
             lambda: self._thermostat.set_update_s(self.report_refresh_spin.value())
         )
 
-    @asyncClose
-    async def closeEvent(self, _event):
+    async def closeThermostat(self):
         try:
             await self._thermostat.end_session()
-            self._thermostat.connection_state = ThermostatConnectionState.DISCONNECTED
         except:
             pass
+
+    @asyncClose
+    async def closeEvent(self, _event):
+        await self.closeThermostat()
+        self._thermostat.connection_state = ThermostatConnectionState.DISCONNECTED
 
     @pyqtSlot(ThermostatConnectionState)
     def _on_connection_state_changed(self, state):
@@ -245,6 +249,8 @@ async def coro_main():
 
 
 def main():
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+    signal.signal(signal.SIGTERM, signal.SIG_DFL)
     qasync.run(coro_main())
 
 
