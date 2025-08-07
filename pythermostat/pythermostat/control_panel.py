@@ -146,6 +146,9 @@ class MainWindow(QtWidgets.QMainWindow):
     @asyncClose
     async def closeEvent(self, _event):
         try:
+            if not any(i!=0.0 for i in self._current_i):
+                for ch in range(self.NUM_CHANNELS):
+                    await self.ctrlCurrent(ch, self._last_i_setpoint[ch])
             await self._thermostat.end_session()
             self._thermostat.connection_state = ThermostatConnectionState.DISCONNECTED
         except:
