@@ -6,7 +6,7 @@ import argparse
 import importlib.resources
 import json
 from PyQt6 import QtWidgets, QtGui, uic
-from PyQt6.QtCore import pyqtSlot
+from PyQt6.QtCore import Qt, pyqtSlot, QPoint
 import qasync
 from qasync import asyncSlot, asyncClose
 from pythermostat.autotune import PIDAutotuneState
@@ -14,7 +14,7 @@ from pythermostat.gui.model.thermostat import Thermostat, ThermostatConnectionSt
 from pythermostat.gui.model.pid_autotuner import PIDAutoTuner
 from pythermostat.gui.view.settings_tree_view import SettingsTreeView
 from pythermostat.gui.view.info_box import InfoBox
-from pythermostat.gui.view.menus import PlotOptionsMenu, ThermostatSettingsMenu, ConnectionDetailsMenu
+from pythermostat.gui.view.menus import PlotOptionsMenu, ThermostatSettingsMenu, ConnectionDetailsMenu, SettingsMenu
 from pythermostat.gui.view.live_plot_view import LiveDataPlotter
 from pythermostat.gui.view.zero_limits_warning_view import ZeroLimitsWarningView
 
@@ -99,6 +99,16 @@ class MainWindow(QtWidgets.QMainWindow):
             get_settings_tree_view_config(args),
         )
 
+        # Save/load settings menu
+        self._settings_menu = SettingsMenu(self._thermostat, self._info_box)
+
+        self.tabWidget.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.tabWidget.customContextMenuRequested.connect(self.openSettingsContextMenu)
+
+        for ch in range(self.NUM_CHANNELS):
+            getattr(self, f"ch{ch}_tree").setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+            getattr(self, f"ch{ch}_tree").customContextMenuRequested.connect(self.openSettingsContextMenu)
+
         # Graphs
         self._channel_graphs = LiveDataPlotter(
             self._thermostat,
@@ -139,6 +149,11 @@ class MainWindow(QtWidgets.QMainWindow):
             self._thermostat.connection_state = ThermostatConnectionState.DISCONNECTED
         except:
             pass
+
+    @pyqtSlot(QPoint)
+    def openSettingsContextMenu(self, pos):
+        self._settings_menu.update_menu(self.tabWidget.currentIndex())
+        action = self._settings_menu.exec(self.sender().mapToGlobal(pos))
 
     @pyqtSlot(ThermostatConnectionState)
     def _on_connection_state_changed(self, state):
