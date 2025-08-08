@@ -99,14 +99,6 @@ class CtrlPanel(QObject):
                 partial(self.pid_auto_tune_request, i)
             )
 
-            # def _ctrlTempMeth(param, control_method="constant_current"):
-            #     name = {"constant_current": "i_set", "temperature_pid":"target"}[control_method]
-            #     for item in param.children():
-            #         item.show(item.opts["name"]==name)
-            
-            # self.params[i].child("output", "control_method").sigValueChanged.connect(_ctrlTempMeth)
-            # _ctrlTempMeth(self.params[i].child("output", "control_method"))
-
         self.thermostat.pid_update.connect(self.update_pid)
         self.thermostat.report_update.connect(self.update_report)
         self.thermostat.thermistor_update.connect(self.update_thermistor)
