@@ -204,6 +204,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self._connecting_task = None
                 self._thermostat.connection_state = ThermostatConnectionState.CONNECTED
                 self._thermostat.start_watching()
+                signal.signal(signal.SIGINT, (lambda s,f:self.close()))
 
             case ThermostatConnectionState.CONNECTING:
                 self._connecting_task.cancel()
@@ -212,12 +213,14 @@ class MainWindow(QtWidgets.QMainWindow):
                 self._thermostat.connection_state = (
                     ThermostatConnectionState.DISCONNECTED
                 )
+                signal.signal(signal.SIGINT, signal.SIG_DFL)
 
             case ThermostatConnectionState.CONNECTED:
                 await self._thermostat.end_session()
                 self._thermostat.connection_state = (
                     ThermostatConnectionState.DISCONNECTED
                 )
+                signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 
 async def coro_main():
@@ -250,7 +253,6 @@ async def coro_main():
 
 def main():
     signal.signal(signal.SIGINT, signal.SIG_DFL)
-    signal.signal(signal.SIGTERM, signal.SIG_DFL)
     qasync.run(coro_main())
 
 
