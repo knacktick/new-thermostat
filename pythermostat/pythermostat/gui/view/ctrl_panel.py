@@ -183,6 +183,11 @@ class CtrlPanel(QObject):
                 for item in setting_param.items:
                     item.setToolTip(1, f"Current value: {data}")
 
+    async def apply_setting(self, param, channel, data, thermostat_param):
+        param.setOpts(lock=True) #make decorator?
+        await self.thermostat.set_param(channel=channel, value=data, **thermostat_param)
+        param.setOpts(lock=False)
+
     @pyqtSlot(list)
     def update_pid(self, pid_settings):
         for settings in pid_settings:
