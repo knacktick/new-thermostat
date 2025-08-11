@@ -50,13 +50,16 @@ class CtrlPanel(QObject):
         for i, param in enumerate(self.params):
             param.channel = i
 
-        def _setTargetToMeasured(self):
-            self.setValue(self._param.parent().parent().parent().child("readings", "temperature").value())
-        
         def _targetContextMenuEvent(self, ev):
             self._contextMenu = QtWidgets.QMenu()
 
-            self._contextMenu.addAction(QAction("Set To Measurement", self, triggered=self.setTargetToMeasured))
+            self._contextMenu.addAction(
+                QAction(
+                    "Set To Measurement", 
+                    self, 
+                    triggered=( lambda _:self.setValue(self._param.parent().parent().parent().child("readings", "temperature").value()) )
+                )
+            )
             self._contextMenu.addSeparator()
             
             self._stdMenu = QtWidgets.QLineEdit(self).createStandardContextMenu()
@@ -76,7 +79,6 @@ class CtrlPanel(QObject):
 
             for item in self.params[i].child("output", "control_method", "target").items:
                 setattr(item.widget, "_param", item.param)
-                item.widget.setTargetToMeasured = MethodType(_setTargetToMeasured, item.widget)
                 item.widget.contextMenuEvent = MethodType(_targetContextMenuEvent, item.widget)
 
             self.params[i].child("pid", "pid_autotune", "run_pid").sigActivated.connect(
