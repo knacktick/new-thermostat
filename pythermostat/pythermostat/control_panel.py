@@ -4,6 +4,7 @@ import asyncio
 import logging
 import argparse
 import importlib.resources
+import signal
 import json
 from functools import partial
 from PyQt6 import QtWidgets, QtGui, uic
@@ -158,13 +159,16 @@ class MainWindow(QtWidgets.QMainWindow):
             lambda: self._thermostat.set_update_s(self.report_refresh_spin.value())
         )
 
-    @asyncClose
-    async def closeEvent(self, _event):
+    async def closeThermostat(self):
         try:
             await self._thermostat.end_session()
-            self._thermostat.connection_state = ThermostatConnectionState.DISCONNECTED
         except:
             pass
+
+    @asyncClose
+    async def closeEvent(self, _event):
+        await self.closeThermostat()
+        self._thermostat.connection_state = ThermostatConnectionState.DISCONNECTED
 
     @pyqtSlot(int)
     def _show_apply_all_settings_btn(self, ch):
@@ -249,6 +253,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 self._connecting_task = None
                 self._thermostat.connection_state = ThermostatConnectionState.CONNECTED
                 self._thermostat.start_watching()
+                signal.signal(signal.SIGINT, (lambda s,f:self.close()))
 
             case ThermostatConnectionState.CONNECTING:
                 self._connecting_task.cancel()
@@ -257,12 +262,14 @@ class MainWindow(QtWidgets.QMainWindow):
                 self._thermostat.connection_state = (
                     ThermostatConnectionState.DISCONNECTED
                 )
+                signal.signal(signal.SIGINT, signal.SIG_DFL)
 
             case ThermostatConnectionState.CONNECTED:
                 await self._thermostat.end_session()
                 self._thermostat.connection_state = (
                     ThermostatConnectionState.DISCONNECTED
                 )
+                signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 
 async def coro_main():
@@ -294,6 +301,7 @@ async def coro_main():
 
 
 def main():
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
     qasync.run(coro_main())
 
 
