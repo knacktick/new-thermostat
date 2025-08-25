@@ -13,7 +13,7 @@ from pythermostat.autotune import PIDAutotuneState
 from pythermostat.gui.model.thermostat import Thermostat, ThermostatConnectionState
 from pythermostat.gui.model.pid_autotuner import PIDAutoTuner
 from pythermostat.gui.view.settings_tree_view import SettingsTreeView
-from pythermostat.gui.view.info_box import InfoBox, QuestionBox, WarningBox
+from pythermostat.gui.view.info_box import InfoBox, WarningBox
 from pythermostat.gui.view.menus import PlotOptionsMenu, ThermostatSettingsMenu, ConnectionDetailsMenu
 from pythermostat.gui.view.live_plot_view import LiveDataPlotter
 from pythermostat.gui.view.zero_limits_warning_view import ZeroLimitsWarningView
@@ -57,7 +57,6 @@ class MainWindow(QtWidgets.QMainWindow):
         uic.loadUi(ui_file_path, self)
 
         self._info_box = InfoBox()
-        self._question_box = QuestionBox()
         self._warning_box = WarningBox()
 
         # Models
@@ -117,7 +116,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.connect_btn.setMenu(self.connection_details_menu)
 
         self._thermostat_settings_menu = ThermostatSettingsMenu(
-            self._thermostat, self._info_box, self._question_box, self._warning_box, self.style()
+            self._thermostat, self._info_box, self._warning_box, self.style()
         )
         self.thermostat_settings.setMenu(self._thermostat_settings_menu)
 

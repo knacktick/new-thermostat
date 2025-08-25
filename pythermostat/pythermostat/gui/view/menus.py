@@ -97,11 +97,10 @@ class PlotOptionsMenu(QtWidgets.QMenu):
 
 
 class ThermostatSettingsMenu(QtWidgets.QMenu):
-    def __init__(self, thermostat, info_box, question_box, warning_box, style):
+    def __init__(self, thermostat, info_box, warning_box, style):
         super().__init__()
         self._thermostat = thermostat
         self._info_box = info_box
-        self._question_box = question_box
         self._warning_box = warning_box 
         self._style = style
 
@@ -272,7 +271,7 @@ class ThermostatSettingsMenu(QtWidgets.QMenu):
 
         @asyncSlot(bool)
         async def save_to_json(_):
-            path = await FileDialogue().display_file_dialogue("Save Config", os.getenv("HOME"), "*.json", QtWidgets.QFileDialog.FileMode.AnyFile, QtWidgets.QFileDialog.AcceptMode.AcceptSave)
+            path = await FileDialogue().display_file_dialogue("Save Config", os.getenv("HOME"), "*.json", "settings.json", QtWidgets.QFileDialog.FileMode.AnyFile, QtWidgets.QFileDialog.AcceptMode.AcceptSave)
             try:
                 await write_to_json(path)
             except Exception as e:
@@ -324,7 +323,7 @@ class ThermostatSettingsMenu(QtWidgets.QMenu):
 
         @asyncSlot(bool)
         async def load_from_json(_):
-            path = await FileDialogue().display_file_dialogue("Load Config", os.getenv("HOME"), "*.json")
+            path = await FileDialogue().display_file_dialogue("Load Config", os.getenv("HOME"), "*.json", "settings.json")
             try: 
                 with open(path, 'r', encoding="utf-8") as f:
                     settings = json.load(f)
