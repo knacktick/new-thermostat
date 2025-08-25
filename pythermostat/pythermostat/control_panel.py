@@ -12,7 +12,7 @@ from qasync import asyncSlot, asyncClose
 from pythermostat.autotune import PIDAutotuneState
 from pythermostat.gui.model.thermostat import Thermostat, ThermostatConnectionState
 from pythermostat.gui.model.pid_autotuner import PIDAutoTuner
-from pythermostat.gui.view.ctrl_panel import CtrlPanel
+from pythermostat.gui.view.settings_tree_view import SettingsTreeView
 from pythermostat.gui.view.info_box import InfoBox
 from pythermostat.gui.view.menus import PlotOptionsMenu, ThermostatSettingsMenu, ConnectionDetailsMenu
 from pythermostat.gui.view.live_plot_view import LiveDataPlotter
@@ -86,17 +86,17 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self._thermostat.connection_error.connect(handle_connection_error)
 
-        # Control Panel
-        def get_ctrl_panel_config(args):
+        # Settings tree view
+        def get_settings_tree_view_config(args):
             with open(args.param_tree, "r", encoding="utf-8") as f:
-                return json.load(f)["ctrl_panel"]
+                return json.load(f)["settings_tree"]
 
-        self._ctrl_panel_view = CtrlPanel(
+        self._settings_tree_view = SettingsTreeView(
             self._thermostat,
             self._autotuners,
             self._info_box,
             [self.ch0_tree, self.ch1_tree],
-            get_ctrl_panel_config(args),
+            get_settings_tree_view_config(args),
         )
 
         # Graphs
