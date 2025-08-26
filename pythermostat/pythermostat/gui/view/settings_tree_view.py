@@ -81,9 +81,6 @@ class SettingsTreeView(QObject):
         for i, param in enumerate(self.params):
             param.channel = i
 
-        def _setTargetToMeasured(spinbox_self):
-            spinbox_self.setValue(self.params[spinbox_self._channel].child("readings", "temperature").value())
-        
         def _targetContextMenuEvent(self, ev):
             self._contextMenu = QtWidgets.QMenu()
 
@@ -91,11 +88,21 @@ class SettingsTreeView(QObject):
             self._contextMenu.addSeparator()
             
             self._contextMenu.addAction(QAction("Copy", self, triggered=lambda: QtWidgets.QApplication.clipboard().setText(str(self.value()))))
-            self._contextMenu.addAction(QAction("Paste", self, triggered=lambda: self.setValue(float(QtWidgets.QApplication.clipboard().text())))) # Suffix handling?
+            self._contextMenu.addAction(QAction("Paste", self, triggered=lambda: self.setValue(float(QtWidgets.QApplication.clipboard().text()))))
 
             self._contextMenu.addSeparator()
             self._contextMenu.addAction(QAction("Step Up", self, triggered=self.stepUp))
             self._contextMenu.addAction(QAction("Step Down", self, triggered=self.stepDown))
+
+            self._contextMenu.popup(ev.globalPos())
+        
+        def _tempContextMenuEvent(self, ev):
+            self._contextMenu = QtWidgets.QMenu()
+
+            self._contextMenu.addAction(QAction("Set as Setpoint", self, triggered=lambda: self._target.setValue(self._temp.value())))
+            self._contextMenu.addSeparator()
+            
+            self._contextMenu.addAction(QAction("Copy", self, triggered=lambda: QtWidgets.QApplication.clipboard().setText(str(self._temp.value()))))
 
             self._contextMenu.popup(ev.globalPos())
 
@@ -105,9 +112,14 @@ class SettingsTreeView(QObject):
             self.params[i].setValue = self._setValue
             self.params[i].sigTreeStateChanged.connect(self.send_command)
 
-            for item in self.params[i].child("output", "control_method", "target").items:
-                setattr(item.widget, "_temp", self.params[i].child("readings", "temperature"))
-                item.widget.contextMenuEvent = MethodType(_targetContextMenuEvent, item.widget)
+            target_item = None
+            for target_item in self.params[i].child("output", "control_method", "target").items:
+                setattr(target_item.widget, "_temp", self.params[i].child("readings", "temperature"))
+                target_item.widget.contextMenuEvent = MethodType(_targetContextMenuEvent, target_item.widget)
+            for temp_item in self.params[i].child("readings", "temperature").items:
+                setattr(temp_item.displayLabel, "_temp", temp_item.widget)
+                setattr(temp_item.displayLabel, "_target", target_item.widget)
+                temp_item.displayLabel.contextMenuEvent = MethodType(_tempContextMenuEvent, temp_item.displayLabel)
 
             self.params[i].child("save").sigActivated.connect(
                 partial(self.save_settings, i)
